@@ -6,46 +6,49 @@
 	"description": "Weatherly is an open-source extension that will display the current forecast in your area, using data from Weather.gov's official forecast.",
 	"action": {
 		"default_icon": {
-			"16": "img/weatherly-16.jpg",
-			"32": "img/weatherly-32.jpg",
-			"64": "img/weatherly-64.jpg"
+			"16": "img/weatherly-16.png",
+			"32": "img/weatherly-32.png",
+			"64": "img/weatherly-64.png"
 		},
 		"default_popup": "popup.html",
 		"default_title": "Weatherly",
 		"theme_icons": [{
-			"dark": "img/weatherly-64.jpg",
-			"light": "img/weatherly-64-light.jpg",
+			"dark": "img/weatherly-64.png",
+			"light": "img/weatherly-64-light.png",
 			"size": 64
 		}, {
-			"dark": "img/weatherly-16.jpg",
-			"light": "img/weatherly-16-light.jpg",
+			"dark": "img/weatherly-16.png",
+			"light": "img/weatherly-16-light.png",
 			"size": 16
 		}, {
-			"dark": "img/weatherly-32.jpg",
-			"light": "img/weatherly-32-light.jpg",
+			"dark": "img/weatherly-32.png",
+			"light": "img/weatherly-32-light.png",
 			"size": 32
 		}]
 	},
 	"author": "JMVR (JMVRy on GitHub)",
 	"background": {
-		"service_worker": "scripts/weatherly-background.js"
+		"service_worker": "scripts/background.js"
 	},
 	"content_scripts": [{
 		"matches": ["*://*.google.com/*", "*://google.com/*"],
-		"js": ["scripts/weatherly-google.js"]
+		"js": ["scripts/onwebsite.js"]
 	}],
 	"homepage_url": "https://github.com/JMVRy/Weatherly",
 	"host_permissions": [
 		"*://api.weather.gov/*"
 	],
 	"icons": {
-		"64": "img/weatherly-64.jpg"
+		"64": "img/weatherly-64.png",
+		"32": "img/weatherly-32.png",
+		"16": "img/weatherly-16.png"
 	},
 	"options_ui": {
 		"page": "options.html"
 	},
 	"permissions": [
 		"webRequest",
-		"background"
+		"background",
+		"storage"
 	]
 }

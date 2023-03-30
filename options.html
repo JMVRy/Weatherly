@@ -3,10 +3,15 @@
 	<head>
 		<meta charset="utf-8">
 		<title>Options</title>
+		<script defer src="scripts/options.js"></script>
 	</head>
 	<body>
 		<p>Test for options</p>
-		<label for="boolTest">Allow for coolness: </label>
-		<input type="checkbox" id="boolTest" name="boolTest">
+		<label for="hourly">Use hourly forecast rather than daily one: </label>
+		<input type="checkbox" id="hourly" name="hourly">
+		<br>
+		<br>
+		<label for="autoUpdate">Automatically update the forecast (will update at every 30 minute mark, e.g. 2:30, 3:30, etc.): </label>
+		<input type="checkbox" id="autoUpdate" name="autoUpdate">
 	</body>
 </html>

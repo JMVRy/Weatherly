@@ -3,9 +3,18 @@
 	<head>
 		<meta charset="utf-8">
 		<title>Popup</title>
+		<script defer src="scripts/popup.js"></script>
+		<link rel="stylesheet" href="styles/popup.css">
 	</head>
 	<body>
-		<p>Test for popup</p>
-		<textarea>Text area</textarea>
+		<div id="weather">
+			<img src="https://picsum.photos/1/1" alt="Weather icon" id="icon">
+			<span id="temperature">999</span>
+			<span id="unit">ºF</span>
+		</div>
+		
+		<input type="submit" value="Send a request!" id="request" name="request">
+		
+		<input type="submit" value="Test storage" id="test" name="test">
 	</body>
 </html>
