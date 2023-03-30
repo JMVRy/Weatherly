@@ -1,0 +1,51 @@
+{
+	"manifest_version": 3,
+	"version": "1.0.0",
+	"version_name": "1.0.0 test",
+	"name": "Weatherly",
+	"description": "Weatherly is an open-source extension that will display the current forecast in your area, using data from Weather.gov's official forecast.",
+	"action": {
+		"default_icon": {
+			"16": "img/weatherly-16.jpg",
+			"32": "img/weatherly-32.jpg",
+			"64": "img/weatherly-64.jpg"
+		},
+		"default_popup": "popup.html",
+		"default_title": "Weatherly",
+		"theme_icons": [{
+			"dark": "img/weatherly-64.jpg",
+			"light": "img/weatherly-64-light.jpg",
+			"size": 64
+		}, {
+			"dark": "img/weatherly-16.jpg",
+			"light": "img/weatherly-16-light.jpg",
+			"size": 16
+		}, {
+			"dark": "img/weatherly-32.jpg",
+			"light": "img/weatherly-32-light.jpg",
+			"size": 32
+		}]
+	},
+	"author": "JMVR (JMVRy on GitHub)",
+	"background": {
+		"service_worker": "scripts/weatherly-background.js"
+	},
+	"content_scripts": [{
+		"matches": ["*://*.google.com/*", "*://google.com/*"],
+		"js": ["scripts/weatherly-google.js"]
+	}],
+	"homepage_url": "https://github.com/JMVRy/Weatherly",
+	"host_permissions": [
+		"*://api.weather.gov/*"
+	],
+	"icons": {
+		"64": "img/weatherly-64.jpg"
+	},
+	"options_ui": {
+		"page": "options.html"
+	},
+	"permissions": [
+		"webRequest",
+		"background"
+	]
+}
