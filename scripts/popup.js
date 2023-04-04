@@ -3,7 +3,9 @@ getAllOptions().then((options) => {
 		fetchIt();
 	console.log(options);
 	console.log(options.lastIcon, options.lastTemp, options.lastUnit);
-	changeForecastDetails(options.lastIcon, options.lastTemp, options.lastUnit);
+	console.log(options.location, `${options.xLoc},${options.yLoc}`, options.forecastUrl);
+	if (options.lastIcon && options.lastTemp && options.lastUnit)
+		changeForecastDetails(options.lastIcon, options.lastTemp, options.lastUnit);
 });
 
 // Declare consts
@@ -11,9 +13,10 @@ const btn = document.getElementById("request");
 const icon = document.getElementById("icon");
 const temperature = document.getElementById("temperature");
 const tempUnit = document.getElementById("unit");
+const req = document.getElementById("req");
 
 // Do logic
-if (btn) btn.addEventListener("click", fetchIt);
+btn.addEventListener("click", () => { fetchIt(true); });
 
 // Define functions
 async function getAllOptions() {
@@ -68,24 +71,66 @@ async function getAllOptions() {
 			resolve();
 		});
 	});
+	await new Promise((resolve, reject) => {
+		chrome.storage.local.get(["xLoc"], (value) => {
+			opts.xLoc = value.xLoc;
+			console.log(value);
+			resolve();
+		});
+	});
+	await new Promise((resolve, reject) => {
+		chrome.storage.local.get(["yLoc"], (value) => {
+			opts.yLoc = value.yLoc;
+			console.log(value);
+			resolve();
+		});
+	});
+	await new Promise((resolve, reject) => {
+		chrome.storage.local.get(["forecastUrl"], (value) => {
+			opts.forecastUrl = value.forecastUrl;
+			console.log(value);
+			resolve();
+		});
+	});
 	
 	return opts;
 }
 
-async function fetchIt() {
+async function fetchIt(clicked = false) {
 	let opts = await getAllOptions();
 	
-	if (new Date().getTime() - new Date(opts.lastUpdate).getTime() < 300000) {
-		console.error("Cannot request before update time (+5 mins just in case)!");
-		return;
+	if (opts?.lastUpdate) {
+		const now = new Date();
+		const lastUpdate = new Date(opts.lastUpdate);
+		if (now.getTime() - lastUpdate.getTime() < 3600000 /*1 hour*/ + 300000 /*5 mins*/) {
+			if (clicked) {
+				console.error("Cannot request before update time (+5 mins just in case)!");
+				req.textContent = `Please wait ${Math.ceil(( 3900000 - ( now.getTime() - lastUpdate.getTime() ) ) / 60000 )} minutes until next refresh`;
+			} else {
+				req.textContent = `Refresh`;
+			}
+			return;
+		}
 	}
 	
-	const url = "https://api.weather.gov/gridpoints/LOT/73,73/forecast";
+	if (!opts?.xLoc) {
+		alert("No (valid) location entered in Options, defaulting to Chicago forecast");
+	}
+	else if (!opts?.forecastUrl) {
+		const gridpointRes = await sendRequest(`https://api.weather.gov/points/${opts.yLoc},${opts.xLoc}`);
+		if (!gridpointRes) return;
+		
+		await chrome.storage.local.set({"forecastUrl": gridpointRes?.properties.forecast});
+		
+		opts = await getAllOptions();
+	}
+	
+	const url = ( opts.forecastUrl ?? "https://api.weather.gov/gridpoints/LOT/73,73/forecast" );
 	
 	const response = await sendRequest(url);
 	
-	if (!response.properties) return;
-	changeForecastDetails(response?.properties.periods[0].icon, response?.properties.periods[0].temperature, response?.properties.periods[0].temperatureUnit);
+	if (!response?.properties) return;
+	changeForecastDetails(response.properties.periods[0].icon, response.properties.periods[0].temperature, response.properties.periods[0].temperatureUnit);
 	
 	chrome.storage.local.set({"lastIcon": response?.properties.periods[0].icon});
 	chrome.storage.local.set({"lastTemp": response?.properties.periods[0].temperature});

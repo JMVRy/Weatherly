@@ -36,7 +36,8 @@
 	}],
 	"homepage_url": "https://github.com/JMVRy/Weatherly",
 	"host_permissions": [
-		"*://api.weather.gov/*"
+		"*://api.weather.gov/*",
+		"*://geocoding.geo.census.gov/*"
 	],
 	"icons": {
 		"64": "img/weatherly-64.png",

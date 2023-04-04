@@ -1,4 +1,28 @@
 body {
 	width: 400px;
-	height: 200px;
+	max-height: 100px;
+}
+
+img {
+	height: 100%;
+}
+
+#button {
+	display: flex;
+	align-items: flex-end;
+	justify-content: right;
+	max-width: 50%;
+	word-wrap: break-word;
+}
+
+.btn {
+	cursor: pointer;
+	background-color: transparent;
+	font-size: 1.5em;
+	border: none;
+	position: absolute;
+}
+
+.btn:active {
+	border: 1px;
 }
