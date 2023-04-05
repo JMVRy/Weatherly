@@ -31,7 +31,12 @@ async function getAllOptions() {
 		"lastIcon": "https://api.weather.gov/icons/land/day/sct?size=medium",
 		"lastTemp": 72,
 		"lastUnit": "F",
-		"lastUpdate": "1900-00-00T00:00:00.000Z"
+		"lastUpdate": "1900-00-00T00:00:00.000Z",
+		"xLoc": -80,
+		"yLoc": 40,
+		"forecastUrl": "https://api.weather.gov/gridpoints/LOT/73,73/forecast",
+		"lastRequest": "1900-00-00T00:00:00.000Z",
+		"overrideRefreshTimer": false
 	};
 	
 	await new Promise((resolve, reject) => {
@@ -104,21 +109,28 @@ async function getAllOptions() {
 			resolve();
 		});
 	});
+	await new Promise((resolve, reject) => {
+		chrome.storage.session.get(["overrideRefreshTimer"], (value) => {
+			opts.overrideRefreshTimer = value.overrideRefreshTimer;
+			console.log(value);
+			resolve();
+		});
+	});
 	
 	return opts;
 }
 
 async function fetchIt(clicked = false) {
 	let opts = await getAllOptions();
+	const now = new Date();
 	
 	if (opts?.lastRequest) {
-		if ( new Date(/*now*/).getTime() - new Date(opts.lastRequest).getTime() < 10000 ) {
+		if ( now.getTime() - new Date(opts.lastRequest).getTime() < 10000 ) {
 			console.error("Cannot request more than once per 10 seconds!");
 		}
 	}
 	
-	const now = new Date();
-	if (opts?.lastUpdate) {
+	if (opts?.lastUpdate && !opts.overrideRefreshTimer) {
 		const lastUpdate = new Date(opts.lastUpdate);
 		
 		// TODO: REPLACE WITH SETTIMEOUT FOR AUTOUPDATE
@@ -132,6 +144,7 @@ async function fetchIt(clicked = false) {
 			return;
 		}
 	}
+	chrome.storage.session.set({"overrideRefreshTimer": false});
 	
 	if (!opts?.xLoc && !opts?.forecastUrl) { // If no location and no URL stored
 		alert("No (valid) location entered in Options, defaulting to Chicago forecast");

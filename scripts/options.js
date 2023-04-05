@@ -55,6 +55,7 @@ loc.addEventListener("change", (event) => {
 	
 	getLocationMatch(event.currentTarget.value).then((matchedAddress) => {
 		matchAddr.textContent = `Matched: ${matchedAddress}`;
+		chrome.storage.session.set({"overrideRefreshTimer": true});
 	});
 });
 
