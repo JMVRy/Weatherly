@@ -7,7 +7,19 @@ const matchAddr = document.getElementById("matchAddr");
 // Make sure each option is correctly checked
 chrome.storage.local.get(["autoUpdate"], (value) => autoUpdate.checked = ( value.autoUpdate ? true : false ));
 chrome.storage.local.get(["hourly"], (value) => hourly.checked = ( value.hourly ? true : false ));
-chrome.storage.local.get(["location"], (val) => {loc.value = ( val.location ?? "No location given!" ); matchAddr.textContent = ( val.location ?? "No location given!" )});
+chrome.storage.session.get(["location"], (val) => {
+	if ( !val?.location ) {
+		chrome.storage.local.get(["forecastUrl"], (valhalla) => {
+			if ( !valhalla?.forecastUrl ) {
+				loc.value = matchAddr.textContent = "No location given, defaulting to Chicago!";
+			} else {
+				loc.value = matchAddr.textContent = "Location not stored, but forecast is still available!";
+			}
+		});
+	} else {
+		loc.value = matchAddr.textContent = val.location;
+	}
+});
 
 // Change options when checkboxes are checked
 autoUpdate.addEventListener("change", (event) => {
@@ -39,7 +51,7 @@ loc.addEventListener("change", (event) => {
 	if (event.currentTarget != loc) return;
 	
 	console.log("Changed location value");
-	chrome.storage.local.set({"location": event.currentTarget.value});
+	chrome.storage.session.set({"location": event.currentTarget.value});
 	
 	getLocationMatch(event.currentTarget.value).then((matchedAddress) => {
 		matchAddr.textContent = `Matched: ${matchedAddress}`;
@@ -50,11 +62,11 @@ async function getLocationMatch(loc) {
 	const geocodeUrl = `https://geocoding.geo.census.gov/geocoder/locations/onelineaddress?address=${encodeURIComponent(loc)}&benchmark=2020&format=json`;
 	const response = await sendRequest(geocodeUrl);
 	
-	if (response.result.addressMatches.length === 0) {
+	if (response?.result.addressMatches.length === 0) {
 		return "No matching address was found!";
 	} else {
-		await chrome.storage.local.set({"xLoc": response.result.addressMatches[0].coordinates.x});
-		await chrome.storage.local.set({"yLoc": response.result.addressMatches[0].coordinates.y});
+		await chrome.storage.session.set({"xLoc": response.result.addressMatches[0].coordinates.x});
+		await chrome.storage.session.set({"yLoc": response.result.addressMatches[0].coordinates.y});
 		
 		return response.result.addressMatches[0].matchedAddress;
 	}
