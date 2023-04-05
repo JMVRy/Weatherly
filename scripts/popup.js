@@ -18,6 +18,11 @@ const req = document.getElementById("req");
 // Do logic
 btn.addEventListener("click", () => { fetchIt(true); });
 
+/*setTimeout(() => {
+	getAllOptions().then((options) => {
+		fetchIt();
+	}*/
+
 // Define functions
 async function getAllOptions() {
 	let opts = {
@@ -72,14 +77,14 @@ async function getAllOptions() {
 		});
 	});
 	await new Promise((resolve, reject) => {
-		chrome.storage.local.get(["xLoc"], (value) => {
+		chrome.storage.session.get(["xLoc"], (value) => {
 			opts.xLoc = value.xLoc;
 			console.log(value);
 			resolve();
 		});
 	});
 	await new Promise((resolve, reject) => {
-		chrome.storage.local.get(["yLoc"], (value) => {
+		chrome.storage.session.get(["yLoc"], (value) => {
 			opts.yLoc = value.yLoc;
 			console.log(value);
 			resolve();
@@ -92,6 +97,13 @@ async function getAllOptions() {
 			resolve();
 		});
 	});
+	await new Promise((resolve, reject) => {
+		chrome.storage.local.get(["lastRequest"], (value) => {
+			opts.lastRequest = value.lastRequest;
+			console.log(value);
+			resolve();
+		});
+	});
 	
 	return opts;
 }
@@ -99,9 +111,17 @@ async function getAllOptions() {
 async function fetchIt(clicked = false) {
 	let opts = await getAllOptions();
 	
+	if (opts?.lastRequest) {
+		if ( new Date(/*now*/).getTime() - new Date(opts.lastRequest).getTime() < 10000 ) {
+			console.error("Cannot request more than once per 10 seconds!");
+		}
+	}
+	
+	const now = new Date();
 	if (opts?.lastUpdate) {
-		const now = new Date();
 		const lastUpdate = new Date(opts.lastUpdate);
+		
+		// TODO: REPLACE WITH SETTIMEOUT FOR AUTOUPDATE
 		if (now.getTime() - lastUpdate.getTime() < 3600000 /*1 hour*/ + 300000 /*5 mins*/) {
 			if (clicked) {
 				console.error("Cannot request before update time (+5 mins just in case)!");
@@ -113,7 +133,7 @@ async function fetchIt(clicked = false) {
 		}
 	}
 	
-	if (!opts?.xLoc) {
+	if (!opts?.xLoc && !opts?.forecastUrl) { // If no location and no URL stored
 		alert("No (valid) location entered in Options, defaulting to Chicago forecast");
 	}
 	else if (!opts?.forecastUrl) {
@@ -125,7 +145,8 @@ async function fetchIt(clicked = false) {
 		opts = await getAllOptions();
 	}
 	
-	const url = ( opts.forecastUrl ?? "https://api.weather.gov/gridpoints/LOT/73,73/forecast" );
+	chrome.storage.local.set({"lastRequest": now.toISOString()});
+	const url = ( opts?.forecastUrl ?? "https://api.weather.gov/gridpoints/LOT/73,73/forecast" );
 	
 	const response = await sendRequest(url);
 	
@@ -136,6 +157,9 @@ async function fetchIt(clicked = false) {
 	chrome.storage.local.set({"lastTemp": response?.properties.periods[0].temperature});
 	chrome.storage.local.set({"lastUnit": response?.properties.periods[0].temperatureUnit});
 	chrome.storage.local.set({"lastUpdate": response?.properties.updateTime});
+	
+	/*chrome.action.setBadgeText({ text: "1" });
+	chrome.action.setBadgeBackgroundColor({ color: "#00FF00" });*/
 }
 
 async function sendRequest(url) {
